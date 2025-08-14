@@ -6,12 +6,11 @@ import { MongooseModule } from "@nestjs/mongoose";
 import { AuthModule } from "./auth/auth.module";
 import { RolesGuard } from "./common/guards/role.guard";
 import { AppMailerModule } from "./common/mails/mailer/email.module";
-import { UsersModule } from "./users/users.module";
-import { SeedModule } from "./seeder/seed.module";
 import { UserSeeder } from "./seeder/user.seeder";
 import { UserRepository } from "./users/repositories/user.repository";
+import { UsersModule } from "./users/users.module";
 // import { ShortlistedCandidatesModule } from './shortlisted-candidate/shortlisted-candidates.module';
-// import { JobsModule } from './jobs/jobs.module';
+import { JobsModule } from "./jobs/jobs.module";
 // import { SkillModule } from './skills/skill.module';
 // import { ResumeAnalyzerModule } from './resume-analyzer/resume-analyzer.module';
 
@@ -42,7 +41,7 @@ import { UserRepository } from "./users/repositories/user.repository";
     UsersModule,
     AppMailerModule,
     // ShortlistedCandidatesModule,
-    // JobsModule,
+    JobsModule,
     // SkillModule,
     // ResumeAnalyzerModule,
   ],
