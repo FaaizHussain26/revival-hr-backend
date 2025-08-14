@@ -1,11 +1,11 @@
 import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
-import { UserPaginationDto } from "src/common/pagination/dto/user-pagination.dto";
+import { UserPaginationDto } from "../../common/pagination/dto/user-pagination.dto";
 import {
   PaginateAndFilter,
   PaginationOutput,
-} from "src/common/pagination/paginate-and-filter";
+} from "../../common/pagination/paginate-and-filter";
 import { User } from "../entities/user.schema";
 
 @Injectable()
