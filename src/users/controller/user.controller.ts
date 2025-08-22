@@ -27,15 +27,15 @@ export class UserController {
   @Get("/")
   @UseGuards(JwtAuthGuard)
   @Roles(Role.Admin, Role.User)
-  async getAll(@Query() query: UserPaginationDto) {
-    return await this.userservice.getAll(query);
+  async findAll(@Query() query: UserPaginationDto) {
+    return await this.userservice.findAll(query);
   }
 
   @Get(":id")
   @Roles(Role.Admin, Role.User)
   @UseGuards(JwtAuthGuard)
-  async getById(@Param("id") id: string) {
-    return await this.userservice.getById(id);
+  async findById(@Param("id") id: string) {
+    return await this.userservice.findById(id);
   }
 
   @Post("/")

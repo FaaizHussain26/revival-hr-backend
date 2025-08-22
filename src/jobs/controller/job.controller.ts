@@ -35,14 +35,14 @@ export class JobController {
   @HttpCode(HttpStatus.OK)
   @Get("/")
   @UseGuards(JwtAuthGuard)
-  async getAll(@Query() query: JobPaginationDto) {
-    return await this.jobService.getAll(query);
+  async findAll(@Query() query: JobPaginationDto) {
+    return await this.jobService.findAll(query);
   }
   @HttpCode(HttpStatus.OK)
   @Get(":id")
   @UseGuards(JwtAuthGuard)
-  async getById(@Param("id") id: string) {
-    return await this.jobService.getById(id);
+  async findById(@Param("id") id: string) {
+    return await this.jobService.findById(id);
   }
   @HttpCode(HttpStatus.OK)
   @Put(":id")

@@ -43,10 +43,10 @@ export class UserRepository {
     ]);
   }
 
-  async getById(id: string): Promise<User | null> {
+  async findById(id: string): Promise<User | null> {
     return await this.userModel.findById(id).exec();
   }
-  async getByEmail(userEmail: string): Promise<User | null> {
+  async findByEmail(userEmail: string): Promise<User | null> {
     return await this.userModel.findOne({ email: userEmail }).exec();
   }
   async updateProfile(id: string, user: Partial<User>): Promise<User | null> {
