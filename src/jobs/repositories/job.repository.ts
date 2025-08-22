@@ -1,15 +1,14 @@
-import { Model } from "mongoose";
 import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
-import { Job } from "../entities/job.schema";
-import { CreateJobDto } from "../dto/create-job.dto";
-import { UpdateJobDto } from "../dto/update-job.dto";
+import { Model } from "mongoose";
+import { JobPaginationDto } from "src/common/pagination/dto/job-pagination.dto";
 import {
   PaginateAndFilter,
   PaginationOutput,
 } from "src/common/pagination/paginate-and-filter";
-import { PaginationQueryDto } from "src/common/pagination/dto/pagination-query.dto";
-import { JobPaginationDto } from "src/common/pagination/dto/job-pagination.dto";
+import { CreateJobDto } from "../dto/create-job.dto";
+import { UpdateJobDto } from "../dto/update-job.dto";
+import { Job } from "../entities/job.schema";
 
 @Injectable()
 export class JobRepository {
@@ -38,11 +37,11 @@ export class JobRepository {
     return result;
   }
 
-  async getById(id: string): Promise<Job | null> {
+  async findById(id: string): Promise<Job | null> {
     return this.jobModel.findById(id).exec();
   }
 
-  async getByName(title: string): Promise<Job | null> {
+  async findByName(title: string): Promise<Job | null> {
     return await this.jobModel.findOne({ title: title }).exec();
   }
 

@@ -20,21 +20,21 @@ export class UserService {
   private readonly logger = new Logger(UserService.name);
   constructor(private readonly userrepo: UserRepository) {}
 
-  async getAll(query: UserPaginationDto) {
-    const getAll = await this.userrepo.findAllPaginatedAndFiltered(query);
+  async findAll(query: UserPaginationDto) {
+    const findAll = await this.userrepo.findAllPaginatedAndFiltered(query);
     return paginationResponse(
       "Users retrieved successfully",
-      getAll.data,
-      getAll.total,
-      getAll.current_page,
-      getAll.last_page,
-      getAll.per_page
+      findAll.data,
+      findAll.total,
+      findAll.current_page,
+      findAll.last_page,
+      findAll.per_page
     );
   }
 
-  async getById(id: string) {
+  async findById(id: string) {
     try {
-      const user = await this.userrepo.getById(id);
+      const user = await this.userrepo.findById(id);
       if (!user) {
         throw new NotFoundException("User not found");
       }
@@ -52,7 +52,7 @@ export class UserService {
 
   async create(payload: CreateUserDto) {
     try {
-      const existingUser = await this.userrepo.getByEmail(payload.email);
+      const existingUser = await this.userrepo.findByEmail(payload.email);
       if (existingUser) {
         throw new BadRequestException("Email already exists");
       }
@@ -73,12 +73,12 @@ export class UserService {
 
   async update(id: string, payload: UpdateUserDto) {
     try {
-      const existingUser = await this.userrepo.getById(id);
+      const existingUser = await this.userrepo.findById(id);
       if (!existingUser) {
         throw new NotFoundException("User not found");
       }
       if (payload.email && payload.email !== existingUser.email) {
-        const userWithEmail = await this.userrepo.getByEmail(payload.email);
+        const userWithEmail = await this.userrepo.findByEmail(payload.email);
         if (userWithEmail) {
           throw new BadRequestException("Email already exists");
         }
@@ -104,7 +104,7 @@ export class UserService {
 
   async delete(id: string) {
     try {
-      const user = await this.userrepo.getById(id);
+      const user = await this.userrepo.findById(id);
       if (!user) {
         throw new NotFoundException("User not found");
       }
@@ -132,7 +132,7 @@ export class UserService {
 
   async restore(id: string) {
     try {
-      const user = await this.userrepo.getById(id);
+      const user = await this.userrepo.findById(id);
       if (!user) {
         throw new NotFoundException("User not found");
       }
@@ -160,7 +160,7 @@ export class UserService {
 
   async permanentDelete(id: string) {
     try {
-      const user = await this.userrepo.getById(id);
+      const user = await this.userrepo.findById(id);
       if (!user) {
         throw new NotFoundException("User not found");
       }

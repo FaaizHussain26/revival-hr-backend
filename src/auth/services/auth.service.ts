@@ -32,7 +32,7 @@ export class AuthService {
   async registration(payload: RegistrationDto) {
     try {
       const { firstName, lastName, email, password } = payload;
-      const existingUser = await this.userRepository.getByEmail(email);
+      const existingUser = await this.userRepository.findByEmail(email);
       if (existingUser) throw new ConflictException("Email already in use");
       const hashedPassword = await bcrypt.hash(password, 10);
       const user = await this.userRepository.create({
@@ -45,7 +45,7 @@ export class AuthService {
       if (!user) {
         throw new BadRequestException("User registration failed");
       }
-      const extractUser = await this.userRepository.getById(user.id);
+      const extractUser = await this.userRepository.findById(user.id);
       return successResponse("User registered successfully", extractUser);
     } catch (error) {
       if (
@@ -64,7 +64,7 @@ export class AuthService {
   async login(payload: LoginDto) {
     try {
       const { email, password } = payload;
-      const existingUser = await this.userRepository.getByEmail(email);
+      const existingUser = await this.userRepository.findByEmail(email);
       if (
         !existingUser ||
         !(await bcrypt.compare(password, existingUser.password))
@@ -100,7 +100,7 @@ export class AuthService {
   }
   async forgotPassword(email: string) {
     try {
-      const user = await this.userRepository.getByEmail(email);
+      const user = await this.userRepository.findByEmail(email);
       if (!user) {
         throw new NotFoundException("User not found with this email.");
       }
@@ -168,7 +168,7 @@ export class AuthService {
       const decoded = await this.jwtService.verifyAsync(token, {
         secret: jwtSecret,
       });
-      const user = await this.userRepository.getByEmail(decoded.email);
+      const user = await this.userRepository.findByEmail(decoded.email);
       if (!user) {
         throw new NotFoundException("User not found");
       }
@@ -197,7 +197,7 @@ export class AuthService {
 
   async updateProfile(user: User, payload: UpdateProfileDto) {
     try {
-      const existingUser = await this.userRepository.getById(
+      const existingUser = await this.userRepository.findById(
         user._id as string
       );
       if (!existingUser) {
@@ -246,7 +246,7 @@ export class AuthService {
         throw new BadRequestException("Invalid ID format");
       }
       const { currentPassword, newPassword } = payload;
-      const user = await this.userRepository.getById(id);
+      const user = await this.userRepository.findById(id);
       if (!user) {
         throw new NotFoundException("User not found");
       }

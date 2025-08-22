@@ -23,7 +23,7 @@ export class JobService {
 
   async create(createJobDto: CreateJobDto) {
     try {
-      const existingJob = await this.jobRepository.getByName(
+      const existingJob = await this.jobRepository.findByName(
         createJobDto.title
       );
       if (existingJob) {
@@ -59,21 +59,21 @@ export class JobService {
     }
   }
 
-  async getAll(query: JobPaginationDto) {
-    const getAll = await this.jobRepository.findAllPaginatedAndFiltered(query);
+  async findAll(query: JobPaginationDto) {
+    const findAll = await this.jobRepository.findAllPaginatedAndFiltered(query);
     return paginationResponse(
       "Job retrieved successfully",
-      getAll.data,
-      getAll.total,
-      getAll.current_page,
-      getAll.last_page,
-      getAll.per_page
+      findAll.data,
+      findAll.total,
+      findAll.current_page,
+      findAll.last_page,
+      findAll.per_page
     );
   }
 
-  async getById(id: string) {
+  async findById(id: string) {
     try {
-      const job = await this.jobRepository.getById(id);
+      const job = await this.jobRepository.findById(id);
       if (!job) {
         throw new NotFoundException("job not found");
       }
@@ -90,13 +90,13 @@ export class JobService {
 
   async update(id: string, updateJobDto: UpdateJobDto) {
     try {
-      const existingJob = await this.jobRepository.getById(id);
+      const existingJob = await this.jobRepository.findById(id);
       if (!existingJob) {
         throw new NotFoundException("Job not found");
       }
 
       if (updateJobDto.title && updateJobDto.title !== existingJob.title) {
-        const userWithTitle = await this.jobRepository.getByName(
+        const userWithTitle = await this.jobRepository.findByName(
           updateJobDto.title
         );
         if (userWithTitle) {
@@ -140,7 +140,7 @@ export class JobService {
 
   async delete(id: string) {
     try {
-      const job = await this.jobRepository.getById(id);
+      const job = await this.jobRepository.findById(id);
       if (!job) {
         throw new NotFoundException("Job not found");
       }
@@ -168,7 +168,7 @@ export class JobService {
 
   async restore(id: string) {
     try {
-      const job = await this.jobRepository.getById(id);
+      const job = await this.jobRepository.findById(id);
       if (!job) {
         throw new NotFoundException("Job not found");
       }
@@ -195,7 +195,7 @@ export class JobService {
 
   async permanentDelete(id: string) {
     try {
-      const job = await this.jobRepository.getById(id);
+      const job = await this.jobRepository.findById(id);
       if (!job) {
         throw new NotFoundException("Job not found");
       }

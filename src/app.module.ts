@@ -11,7 +11,7 @@ import { UserRepository } from "./users/repositories/user.repository";
 import { UsersModule } from "./users/users.module";
 // import { ShortlistedCandidatesModule } from './shortlisted-candidate/shortlisted-candidates.module';
 import { JobsModule } from "./jobs/jobs.module";
-// import { SkillModule } from './skills/skill.module';
+import { SkillModule } from "./skills/skill.module";
 // import { ResumeAnalyzerModule } from './resume-analyzer/resume-analyzer.module';
 
 @Module({
@@ -42,7 +42,7 @@ import { JobsModule } from "./jobs/jobs.module";
     AppMailerModule,
     // ShortlistedCandidatesModule,
     JobsModule,
-    // SkillModule,
+    SkillModule,
     // ResumeAnalyzerModule,
   ],
   providers: [
