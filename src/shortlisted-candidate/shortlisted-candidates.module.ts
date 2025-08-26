@@ -33,5 +33,6 @@ import { HiringPipelineService } from "./services/hiring-pipeline.service";
     HiringPipelineService
     
   ],
+  exports:[ShortlistedCandidatesRepository, MongooseModule]
 })
 export class ShortlistedCandidatesModule {}

@@ -1,12 +1,12 @@
-import { MailerService } from '@nestjs-modules/mailer';
-import { Injectable } from '@nestjs/common';
-import { OnEvent } from '@nestjs/event-emitter';
+import { MailerService } from "@nestjs-modules/mailer";
+import { Injectable } from "@nestjs/common";
+import { OnEvent } from "@nestjs/event-emitter";
+import { Email } from "../email";
+import { on } from "events";
+import { CreateInterviewDto } from "src/interviews/dto/create-interview.dto";
+import { start } from "repl";
+import { generateICS } from "src/common/utils/calendar/event-invite.utils";
 
-interface Email {
-  subject: string;
-  toEmail: string;
-  data: string;
-}
 @Injectable()
 export class EmailService {
   constructor(private readonly mailerService: MailerService) {}
@@ -14,25 +14,73 @@ export class EmailService {
   async sendDynamicEmail(email: Email) {
     try {
       if (!email.toEmail) {
-        throw new Error('No recipient email provided');
+        throw new Error("No recipient email provided");
       }
 
       await this.mailerService.sendMail({
         to: email.toEmail,
         subject: email.subject,
         html: email.data,
+        ...(email.alternatives && { alternatives: email.alternatives }),
       });
-      console.log('Email sent successfully');
+      console.log("Email sent successfully");
     } catch (err) {
-      console.error('Error sending email:', err);
+      console.error("Error sending email:", err);
     }
   }
-  @OnEvent('forgot.password')
+
+  @OnEvent("forgot.password")
   async handleForgotPasswordEvent(record: any) {
     await this.sendDynamicEmail({
-      subject: 'Reset Password Link : Forgot Password',
+      subject: "Reset Password Link : Forgot Password",
       toEmail: record.email,
       data: `<b>Dear ${record.email}</b> <br/> <p>Your Reset password link is <b> ${record.link} </b> you can now reset your password</p>`,
     });
+  }
+
+  @OnEvent("interview.scheduled")
+  async handleInterviewScheduledEvent(record: any) {
+    await this.sendDynamicEmail({
+      subject: record.subject,
+      toEmail: [record.candidateEmail, ...record.interviewer],
+      data: `<b>Dear Participant</b><br/><p>The interview has been scheduled. Please review the details shared with you regarding the date and time, and ensure you are prepared.</p>`,
+      alternatives: [
+        {
+          contentType: 'text/calendar; charset="utf-8"; method=REQUEST',
+          content: generateICS({
+            dtstamp: this.formatDate(new Date()),
+            start: this.formatDate(new Date(record.scheduledAt)),
+            end: this.formatDate(
+              new Date(
+                new Date(record.scheduledAt).getTime() +
+                  (record.duration || 60) * 60000
+              )
+            ),
+            summary: record.subject,
+            description: record.description,
+            location: record.location,
+            organizer: {
+              name: "HR Team",
+              email: record.fromEmail,
+            },
+            attendees: [
+              { name: record.candidateName, email: record.candidateEmail },
+              ...record.interviewer.map((email: string) => ({
+                name: "Interviewer",
+                email,
+              })),
+            ],
+          }),
+        },
+      ],
+    });
+  }
+
+  formatDate(date: Date | string): string {
+    const parsedDate = new Date(date);
+    if (isNaN(parsedDate.getTime())) {
+      throw new Error(`Invalid date provided to formatDate: ${date}`);
+    }
+    return parsedDate.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
   }
 }
