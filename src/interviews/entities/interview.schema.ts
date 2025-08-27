@@ -24,14 +24,11 @@ export class Interviews {
   })
   type: string;
 
-  @Prop({ required: true })
-  subject: string;
-
   @Prop({ required: true, type: [String] })
   interviewer: string[];
 
-  @Prop()
-  location?: string;
+  @Prop({ required: true })
+  location: string;
 
   @Prop({
     required: true,
@@ -43,8 +40,8 @@ export class Interviews {
   @Prop()
   notes?: string;
 
-  // @Prop()
-  // outlookEventId?: string;
+  @Prop()
+  eventId?: string;
 
   // @Prop({ type: [String] })
   // attendees?: string[]; // array of email addresses

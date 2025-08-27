@@ -9,6 +9,7 @@ export interface CalendarInviteOptions {
   organizer: { name: string; email: string };
   attendees?: Array<{ name: string; email: string }>;
   method?: "REQUEST" | "PUBLISH" | "CANCEL";
+  sequence?: 0 | 1;
 }
 
 export function generateICS(options: CalendarInviteOptions): string {
@@ -22,8 +23,9 @@ export function generateICS(options: CalendarInviteOptions): string {
     location = "",
     organizer,
     attendees = [],
-    method = "REQUEST",
-  } = options;
+    method ,
+    sequence,
+    } = options;
 
   const attendeeLines = attendees 
     .map(
@@ -47,7 +49,7 @@ DESCRIPTION:${description}
 LOCATION:${location}
 ORGANIZER;CN=${organizer.name}:mailto:${organizer.email}
 ${attendeeLines}
-SEQUENCE:0
+SEQUENCE:${sequence}
 STATUS:CONFIRMED
 TRANSP:OPAQUE
 END:VEVENT

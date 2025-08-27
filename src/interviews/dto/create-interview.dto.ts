@@ -43,14 +43,14 @@ export class CreateInterviewDto {
   @IsNotEmpty()
   scheduledAt: Date;
 
-  @ApiProperty({
-    description: "Subject line of the interview invitation email",
-    example: "Interview Invitation – Software Engineer Role at Acme Corp",
-    required: true,
-  })
-  @IsNotEmpty()
-  @IsString()
-  subject: string;
+  // @ApiProperty({
+  //   description: "Subject line of the interview invitation email",
+  //   example: "Interview Invitation – Software Engineer Role at Acme Corp",
+  //   required: true,
+  // })
+  // @IsNotEmpty()
+  // @IsString()
+  // subject: string;
 
   @ApiProperty({
     description: "Duration of the interview in minutes",
@@ -87,9 +87,9 @@ export class CreateInterviewDto {
     example: "Zoom, Google Meet, or Office Room A",
     required: false,
   })
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
-  location?: string;
+  location: string;
 
   @ApiProperty({
     description: "Current status of the interview",

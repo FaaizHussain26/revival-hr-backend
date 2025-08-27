@@ -12,6 +12,14 @@ import { successResponse } from "src/common/response/response";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { ShortlistedCandidatesRepository } from "src/shortlisted-candidate/repositories/shortlisted-candidates.repository";
 import { ConfigService } from "@nestjs/config";
+import { v4 as uuidv4 } from "uuid";
+import path from "path";
+import { PaginationQueryDto } from "src/common/pagination/dto/pagination-query.dto";
+import {
+  canceledInterviewEmailTemplate,
+  rescheduledInterviewEmailTemplate,
+  scheduledInterviewEmailTemplate,
+} from "src/common/utils/templates/email.template";
 
 @Injectable()
 export class InterviewService {
@@ -19,12 +27,11 @@ export class InterviewService {
     private readonly interviewRepository: InterviewRepository,
     private readonly candidatesRepository: ShortlistedCandidatesRepository,
     private eventEmitter: EventEmitter2,
-     private readonly configService: ConfigService
+    private readonly configService: ConfigService
   ) {}
 
   async create(payload: CreateInterviewDto) {
     try {
-      
       const candidate = await this.candidatesRepository.findById(
         payload.candidate
       );
@@ -39,22 +46,54 @@ export class InterviewService {
           "Candidate already has an interview scheduled"
         );
       }
-      const email = await this.eventEmitter.emitAsync("interview.scheduled", {
-        ...payload,
-        fromEmail: this.configService.get<string>("BREVO_USER"),
-        candidateName: candidate.applicant_name,
-        candidateEmail: candidate.applicant_email,
-      });
-      console.log(email);
-      if (!email) {
-        throw new BadRequestException("Email not send.");
+      const uId = uuidv4();
+      const { subject, bodyForCandidate, bodyForInterviewer } =
+        scheduledInterviewEmailTemplate(
+          candidate.applicant_name,
+          payload.location,
+          payload.scheduledAt
+        );
+      const emailToCandidate = await Promise.all([
+        this.eventEmitter.emitAsync(
+          "interview.scheduled",
+          {
+            ...payload,
+            fromEmail: this.configService.get<string>("BREVO_USER"),
+            candidateName: candidate.applicant_name,
+            candidateEmail: candidate.applicant_email,
+            method: "REQUEST",
+            uId,
+            sequence: 0,
+          },
+          [candidate.applicant_email],
+          subject,
+          bodyForCandidate
+        ),
+        this.eventEmitter.emitAsync(
+          "interview.scheduled",
+          {
+            ...payload,
+            fromEmail: this.configService.get<string>("BREVO_USER"),
+            candidateName: candidate.applicant_name,
+            candidateEmail: candidate.applicant_email,
+            method: "REQUEST",
+            uId,
+            sequence: 0,
+          },
+          [...payload.interviewer],
+          subject,
+          bodyForInterviewer
+        ),
+      ]);
+      if (!emailToCandidate) {
+        throw new BadRequestException("Email not send");
       }
-      // // const Interview = await this.interviewRepository.create(payload);
-      // if (!Interview) {
-      //   throw new BadRequestException("Interview creation failed");
-      // }
+      const interview = await this.interviewRepository.create(payload, uId);
+      if (!interview) {
+        throw new BadRequestException("Interview creation failed", interview);
+      }
 
-      return successResponse("Interview created successfully", email);
+      return successResponse("Interview created successfully", interview);
     } catch (error) {
       if (
         error instanceof NotFoundException ||
@@ -66,7 +105,170 @@ export class InterviewService {
       console.error("Error creating Interview:", error);
       throw new InternalServerErrorException(
         "An unexpected error occurred while creating the Interview."
+      );
+    }
+  }
 
+  async findAll() {
+    try {
+      const interviews = await this.interviewRepository.findAll();
+      return successResponse("Interviews fetched successfully", interviews);
+    } catch (error) {
+      throw new InternalServerErrorException(
+        "An unexpected error occurred while fetching the Interviews."
+      );
+    }
+  }
+
+  async findAllPaginatedAndFiltered(query: PaginationQueryDto) {
+    try {
+      const interviews =
+        await this.interviewRepository.findAllPaginatedAndFiltered(query);
+      return successResponse("Interviews fetched successfully", interviews);
+    } catch (error) {
+      throw new InternalServerErrorException(
+        "An unexpected error occurred while fetching the Interviews."
+      );
+    }
+  }
+
+  async update(id: string, payload: UpdateInterviewDto) {
+    let subject,
+      bodyForCandidate,
+      bodyForInterviewer = "";
+    let method = "";
+    let sequence = 1;
+
+    try {
+      const existingInterview = await this.interviewRepository.findById(id);
+      if (!existingInterview) {
+        throw new NotFoundException("Interview not found");
+      }
+      if (!existingInterview.eventId) {
+        throw new BadRequestException(
+          "Cannot update interview without eventId"
+        );
+      }
+
+      const candidate = await this.candidatesRepository.findById(
+        existingInterview.candidate.toString()
+      );
+      if (!candidate) {
+        throw new NotFoundException("Candidate Id is not valid");
+      }
+
+      const uId = existingInterview.eventId;
+      if (payload.status == "scheduled") {
+        throw new BadRequestException("Interview is already scheduled");
+      }
+
+      if (payload.status == "rescheduled") {
+        if (!payload.scheduledAt) {
+          throw new BadRequestException("New scheduled date must be provided.");
+        }
+
+        const newScheduleDate = new Date(payload.scheduledAt);
+        const currentScheduleDate = new Date(existingInterview.scheduledAt);
+
+        if (currentScheduleDate.getTime() === newScheduleDate.getTime()) {
+          throw new BadRequestException(
+            "New schedule time must be different from the current one."
+          );
+        }
+
+        const rescheduledInterview = rescheduledInterviewEmailTemplate(
+          candidate.applicant_name,
+          (payload.location as string) || existingInterview.location,
+          payload.scheduledAt as Date
+        );
+        subject = rescheduledInterview.subject;
+        bodyForCandidate = rescheduledInterview.bodyForCandidate;
+        bodyForInterviewer = rescheduledInterview.bodyForInterviewer;
+        method = "REQUEST";
+      } else if (payload.status == "cancelled") {
+        const allowedFields = ["status"];
+
+        const payloadFields = Object.keys(payload);
+
+        const hasInvalidFields = payloadFields.some(
+          (field) => !allowedFields.includes(field)
+        );
+
+        if (hasInvalidFields) {
+          throw new BadRequestException(
+            "Only the 'status' field can be updated when cancelling an interview."
+          );
+        }
+        const canceledInterview = canceledInterviewEmailTemplate(
+          candidate.applicant_name
+        );
+        subject = canceledInterview.subject;
+        bodyForCandidate = canceledInterview.bodyForCandidate;
+        bodyForInterviewer = canceledInterview.bodyForInterviewer;
+        method = "CANCEL";
+      }
+
+      const emailToCandidate = await Promise.all([
+        this.eventEmitter.emitAsync(
+          "interview.scheduled",
+          {
+            ...payload,
+            fromEmail: this.configService.get<string>("BREVO_USER"),
+            candidateName: candidate.applicant_name,
+            candidateEmail: candidate.applicant_email,
+            method: method,
+            sequence: sequence,
+            uId,
+          },
+          [candidate.applicant_email],
+          subject,
+          bodyForCandidate
+        ),
+        this.eventEmitter.emitAsync(
+          "interview.scheduled",
+          {
+            ...payload,
+            fromEmail: this.configService.get<string>("BREVO_USER"),
+            candidateName: candidate.applicant_name,
+            candidateEmail: candidate.applicant_email,
+            method: method,
+            sequence: sequence,
+            uId,
+          },
+          [
+            ...(payload.interviewer ||
+              (existingInterview.interviewer as Array<string>)),
+          ],
+          subject,
+          bodyForInterviewer
+        ),
+      ]);
+      if (!emailToCandidate) {
+        throw new BadRequestException("Email not send");
+      }
+      const updatedInterview = await this.interviewRepository.update(
+        id,
+        payload
+      );
+      if (!updatedInterview) {
+        throw new BadRequestException("Interview update failed");
+      }
+
+      return successResponse(
+        "Interview updated successfully",
+        updatedInterview
+      );
+    } catch (error) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof ConflictException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+      console.error("Error creating Interview:", error);
+      throw new InternalServerErrorException(
+        "An unexpected error occurred while creating the Interview."
       );
     }
   }

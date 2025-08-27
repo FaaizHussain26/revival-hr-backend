@@ -15,6 +15,7 @@ import { ApiBearerAuth, ApiQuery, ApiTags } from "@nestjs/swagger";
 import { JwtAuthGuard } from "src/common/guards/jwt-auth.guard";
 import { CreateInterviewDto } from "../dto/create-interview.dto";
 import { InterviewService } from "../services/interview.service";
+import { UpdateInterviewDto } from "../dto/update-interview.dto";
 
 @Controller("interviews")
 @ApiBearerAuth()
@@ -27,6 +28,13 @@ export class InterviewController {
   @HttpCode(HttpStatus.CREATED)
   create(@Body() payload: CreateInterviewDto) {
     return this.InterviewService.create(payload);
+  }
+
+   
+  @Put("/:id")
+  @HttpCode(HttpStatus.CREATED)
+  update(@Param('id') id:string , @Body() payload: UpdateInterviewDto) {
+    return this.InterviewService.update(id, payload);
   }
 
 }

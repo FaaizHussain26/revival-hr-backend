@@ -9,12 +9,10 @@ import { AppMailerModule } from "./common/mails/mailer/email.module";
 import { UserSeeder } from "./seeder/user.seeder";
 import { UserRepository } from "./users/repositories/user.repository";
 import { UsersModule } from "./users/users.module";
-
 import { JobsModule } from "./jobs/jobs.module";
 import { SkillModule } from "./skills/skill.module";
 import { ShortlistedCandidatesModule } from "./shortlisted-candidate/shortlisted-candidates.module";
 import { InterviewModule } from "./interviews/interview.module";
-// import { ResumeAnalyzerModule } from './resume-analyzer/resume-analyzer.module';
 
 @Module({
   imports: [
@@ -46,7 +44,6 @@ import { InterviewModule } from "./interviews/interview.module";
     JobsModule,
     SkillModule,
     InterviewModule,
-    // ResumeAnalyzerModule,
   ],
   providers: [
     {
