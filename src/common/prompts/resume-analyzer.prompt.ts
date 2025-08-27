@@ -14,8 +14,9 @@ You are evaluating the following resume against a specific job opening.
 **Job Description:**
 ${job.description}
 
-**Required Experience (Years):**
-${job.experience}
+**Required Experience:**
+${job.experience_level}
+
 
 **Required Skills:**
 ${job.skills.join(', ')}
