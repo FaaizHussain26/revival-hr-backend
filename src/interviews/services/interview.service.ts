@@ -5,21 +5,20 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from "@nestjs/common";
-import { CreateInterviewDto } from "../dto/create-interview.dto";
-import { UpdateInterviewDto } from "../dto/update-interview.dto";
-import { InterviewRepository } from "../repositories/interview.repository";
-import { successResponse } from "src/common/response/response";
-import { EventEmitter2 } from "@nestjs/event-emitter";
-import { ShortlistedCandidatesRepository } from "src/shortlisted-candidate/repositories/shortlisted-candidates.repository";
 import { ConfigService } from "@nestjs/config";
-import { v4 as uuidv4 } from "uuid";
-import path from "path";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 import { PaginationQueryDto } from "src/common/pagination/dto/pagination-query.dto";
+import { successResponse } from "src/common/response/response";
 import {
   canceledInterviewEmailTemplate,
   rescheduledInterviewEmailTemplate,
   scheduledInterviewEmailTemplate,
 } from "src/common/utils/templates/email.template";
+import { ShortlistedCandidatesRepository } from "src/shortlisted-candidate/repositories/shortlisted-candidates.repository";
+import { v4 as uuidv4 } from "uuid";
+import { CreateInterviewDto } from "../dto/create-interview.dto";
+import { UpdateInterviewDto } from "../dto/update-interview.dto";
+import { InterviewRepository } from "../repositories/interview.repository";
 
 @Injectable()
 export class InterviewService {
@@ -44,6 +43,22 @@ export class InterviewService {
       if (candidateExists) {
         throw new ConflictException(
           "Candidate already has an interview scheduled"
+        );
+      }
+      if (payload.scheduledAt < new Date()) {
+        throw new BadRequestException("Scheduled date must be in the future.");
+      }
+      if (payload.duration <= 0) {
+        throw new BadRequestException("Duration must be a positive number.");
+      }
+      if (payload.interviewer.length === 0) {
+        throw new BadRequestException(
+          "At least one interviewer must be specified."
+        );
+      }
+      if (payload.status && payload.status !== "scheduled") {
+        throw new BadRequestException(
+          "New interview must have status 'scheduled'."
         );
       }
       const uId = uuidv4();
@@ -133,12 +148,6 @@ export class InterviewService {
   }
 
   async update(id: string, payload: UpdateInterviewDto) {
-    let subject,
-      bodyForCandidate,
-      bodyForInterviewer = "";
-    let method = "";
-    let sequence = 1;
-
     try {
       const existingInterview = await this.interviewRepository.findById(id);
       if (!existingInterview) {
@@ -149,18 +158,31 @@ export class InterviewService {
           "Cannot update interview without eventId"
         );
       }
-
+      if (payload.candidate) {
+        throw new BadRequestException("Candidate field cannot be updated");
+      }
       const candidate = await this.candidatesRepository.findById(
-        existingInterview.candidate.toString()
+        existingInterview.candidate._id.toString()
       );
+      console.log(candidate);
       if (!candidate) {
         throw new NotFoundException("Candidate Id is not valid");
       }
 
       const uId = existingInterview.eventId;
-      if (payload.status == "scheduled") {
+      if (
+        payload.status === "scheduled" &&
+        existingInterview.status === "scheduled"
+      ) {
         throw new BadRequestException("Interview is already scheduled");
       }
+
+      let subject = "";
+      let bodyForCandidate = "";
+      let bodyForInterviewer = "";
+      let method = "";
+      let sequence = 1;
+      const now = new Date();
 
       if (payload.status == "rescheduled") {
         if (!payload.scheduledAt) {
@@ -170,20 +192,26 @@ export class InterviewService {
         const newScheduleDate = new Date(payload.scheduledAt);
         const currentScheduleDate = new Date(existingInterview.scheduledAt);
 
+        if (currentScheduleDate < now) {
+          throw new BadRequestException(
+            "Cannot reschedule an interview that has already passed."
+          );
+        }
+
         if (currentScheduleDate.getTime() === newScheduleDate.getTime()) {
           throw new BadRequestException(
             "New schedule time must be different from the current one."
           );
         }
 
-        const rescheduledInterview = rescheduledInterviewEmailTemplate(
+        const template = rescheduledInterviewEmailTemplate(
           candidate.applicant_name,
           (payload.location as string) || existingInterview.location,
           payload.scheduledAt as Date
         );
-        subject = rescheduledInterview.subject;
-        bodyForCandidate = rescheduledInterview.bodyForCandidate;
-        bodyForInterviewer = rescheduledInterview.bodyForInterviewer;
+        subject = template.subject;
+        bodyForCandidate = template.bodyForCandidate;
+        bodyForInterviewer = template.bodyForInterviewer;
         method = "REQUEST";
       } else if (payload.status == "cancelled") {
         const allowedFields = ["status"];
@@ -199,25 +227,39 @@ export class InterviewService {
             "Only the 'status' field can be updated when cancelling an interview."
           );
         }
-        const canceledInterview = canceledInterviewEmailTemplate(
+        const template = canceledInterviewEmailTemplate(
           candidate.applicant_name
         );
-        subject = canceledInterview.subject;
-        bodyForCandidate = canceledInterview.bodyForCandidate;
-        bodyForInterviewer = canceledInterview.bodyForInterviewer;
+        subject = template.subject;
+        bodyForCandidate = template.bodyForCandidate;
+        bodyForInterviewer = template.bodyForInterviewer;
         method = "CANCEL";
+      } else {
+        throw new BadRequestException(
+          "Status must be either 'rescheduled' or 'cancelled' to update the interview."
+        );
       }
 
+      const updatedField = {
+        scheduledAt: payload.scheduledAt || existingInterview.scheduledAt,
+        duration: payload.duration || existingInterview.duration,
+        type: payload.type || existingInterview.type,
+        interviewer: payload.interviewer || existingInterview.interviewer,
+        location: payload.location || existingInterview.location,
+        status: payload.status || existingInterview.status,
+        notes: payload.notes || existingInterview.notes,
+        eventId: existingInterview.eventId,
+      };
       const emailToCandidate = await Promise.all([
         this.eventEmitter.emitAsync(
           "interview.scheduled",
           {
-            ...payload,
+            ...updatedField,
             fromEmail: this.configService.get<string>("BREVO_USER"),
             candidateName: candidate.applicant_name,
             candidateEmail: candidate.applicant_email,
             method: method,
-            sequence: sequence,
+            sequence: sequence++,
             uId,
           },
           [candidate.applicant_email],
@@ -227,18 +269,15 @@ export class InterviewService {
         this.eventEmitter.emitAsync(
           "interview.scheduled",
           {
-            ...payload,
+            ...updatedField,
             fromEmail: this.configService.get<string>("BREVO_USER"),
             candidateName: candidate.applicant_name,
             candidateEmail: candidate.applicant_email,
             method: method,
-            sequence: sequence,
+            sequence: sequence++,
             uId,
           },
-          [
-            ...(payload.interviewer ||
-              (existingInterview.interviewer as Array<string>)),
-          ],
+          [...updatedField.interviewer],
           subject,
           bodyForInterviewer
         ),
