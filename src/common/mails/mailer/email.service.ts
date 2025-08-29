@@ -39,78 +39,50 @@ export class EmailService {
   }
 
   @OnEvent("interview.scheduled")
-  async handleInterviewScheduledEvent(
-    record: any,
-    toEmail: string[],
-    subject: string,
-    body: string
-  ) {
+  async handleInterviewScheduledEvent(event: {
+    payload: any;
+    recipients: string[];
+    subject: string;
+    body: string;
+  }) {
+    const { payload, recipients, subject, body } = event;
     const emailsender = await this.sendDynamicEmail({
       subject: subject,
-      toEmail: [...toEmail],
+      toEmail: recipients,
       data: body,
       alternatives: [
         {
-          contentType: `text/calendar; charset="utf-8"; method=${record.method}`,
+          contentType: `text/calendar; charset="utf-8"; method=${payload.method}`,
           content: generateICS({
-            uid: record.uId,
+            uid: payload.uId,
             dtstamp: this.formatDate(new Date()),
-            start: this.formatDate(new Date(record.scheduledAt)),
+            start: this.formatDate(new Date(payload.scheduledAt)),
             end: this.formatDate(
               new Date(
-                new Date(record.scheduledAt).getTime() +
-                  (record.duration || 60) * 60000
+                new Date(payload.scheduledAt).getTime() +
+                  (payload.duration || 60) * 60000
               )
             ),
             summary: subject,
-            description: record.description,
-            location: record.location,
+            description: payload.description,
+            location: payload.location,
             organizer: {
               name: "HR Team",
-              email: record.fromEmail,
+              email: payload.fromEmail,
             },
             attendees: [
-              { name: record.candidateName, email: record.candidateEmail },
-              ...record.interviewer.map((email: string) => ({
+              { name: payload.candidateName, email: payload.candidateEmail },
+              ...payload.interviewer.map((email: string) => ({
                 name: "Interviewer",
                 email,
               })),
             ],
-            method: record.method,
-            sequence: record.sequence,
+            method: payload.method,
+            sequence: payload.sequence,
           }),
         },
       ],
     });
-
-    console.log(
-      generateICS({
-        uid: record.uId,
-        dtstamp: this.formatDate(new Date()),
-        start: this.formatDate(new Date(record.scheduledAt)),
-        end: this.formatDate(
-          new Date(
-            new Date(record.scheduledAt).getTime() +
-              (record.duration || 60) * 60000
-          )
-        ),
-        summary: subject,
-        description: record.description,
-        location: record.location,
-        organizer: {
-          name: "HR Team",
-          email: record.fromEmail,
-        },
-        attendees: [
-          { name: record.candidateName, email: record.candidateEmail },
-          ...record.interviewer.map((email: string) => ({
-            name: "Interviewer",
-            email,
-          })),
-        ],
-        method: record.method,
-      })
-    );
     console.log("Email sent to Candidate and Interviewer:", emailsender);
   }
 

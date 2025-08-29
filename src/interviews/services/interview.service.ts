@@ -40,7 +40,7 @@ export class InterviewService {
       const candidateExists = await this.interviewRepository.findByCandidate(
         payload.candidate
       );
-      if (candidateExists) {
+      if (candidateExists && candidateExists.type === payload.type) {
         throw new ConflictException(
           "Candidate already has an interview scheduled"
         );
@@ -69,9 +69,8 @@ export class InterviewService {
           payload.scheduledAt
         );
       const emailToCandidate = await Promise.all([
-        this.eventEmitter.emitAsync(
-          "interview.scheduled",
-          {
+        this.eventEmitter.emitAsync("interview.scheduled", {
+          payload: {
             ...payload,
             fromEmail: this.configService.get<string>("BREVO_USER"),
             candidateName: candidate.applicant_name,
@@ -80,13 +79,12 @@ export class InterviewService {
             uId,
             sequence: 0,
           },
-          [candidate.applicant_email],
+          recipients: [candidate.applicant_email],
           subject,
-          bodyForCandidate
-        ),
-        this.eventEmitter.emitAsync(
-          "interview.scheduled",
-          {
+          body: bodyForCandidate,
+        }),
+        this.eventEmitter.emitAsync("interview.scheduled", {
+          payload: {
             ...payload,
             fromEmail: this.configService.get<string>("BREVO_USER"),
             candidateName: candidate.applicant_name,
@@ -95,10 +93,10 @@ export class InterviewService {
             uId,
             sequence: 0,
           },
-          [...payload.interviewer],
+          recipients: [...payload.interviewer],
           subject,
-          bodyForInterviewer
-        ),
+          body: bodyForInterviewer,
+        }),
       ]);
       if (!emailToCandidate) {
         throw new BadRequestException("Email not send");
@@ -250,10 +248,9 @@ export class InterviewService {
         notes: payload.notes || existingInterview.notes,
         eventId: existingInterview.eventId,
       };
-      const emailToCandidate = await Promise.all([
-        this.eventEmitter.emitAsync(
-          "interview.scheduled",
-          {
+      const email = await Promise.all([
+        this.eventEmitter.emitAsync("interview.scheduled", {
+          payload: {
             ...updatedField,
             fromEmail: this.configService.get<string>("BREVO_USER"),
             candidateName: candidate.applicant_name,
@@ -262,13 +259,12 @@ export class InterviewService {
             sequence: sequence++,
             uId,
           },
-          [candidate.applicant_email],
+          recipients: [candidate.applicant_email],
           subject,
-          bodyForCandidate
-        ),
-        this.eventEmitter.emitAsync(
-          "interview.scheduled",
-          {
+          body: bodyForCandidate,
+        }),
+        this.eventEmitter.emitAsync("interview.scheduled", {
+          payload: {
             ...updatedField,
             fromEmail: this.configService.get<string>("BREVO_USER"),
             candidateName: candidate.applicant_name,
@@ -277,13 +273,13 @@ export class InterviewService {
             sequence: sequence++,
             uId,
           },
-          [...updatedField.interviewer],
+          recipients: [...updatedField.interviewer],
           subject,
-          bodyForInterviewer
-        ),
+          body: bodyForInterviewer,
+        }),
       ]);
-      if (!emailToCandidate) {
-        throw new BadRequestException("Email not send");
+      if (!email?.length) {
+        throw new BadRequestException("No listeners responded for email send");
       }
       const updatedInterview = await this.interviewRepository.update(
         id,

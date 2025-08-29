@@ -98,6 +98,7 @@ export class CreateInterviewDto {
     default: "scheduled",
     required: false,
   })
+  @IsOptional()
   @IsEnum(InterviewStatus)
   status: InterviewStatus;
 
