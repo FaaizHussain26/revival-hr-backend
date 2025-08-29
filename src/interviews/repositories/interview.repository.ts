@@ -40,6 +40,9 @@ export class InterviewRepository {
   async findAllPaginatedAndFiltered(
     query: PaginationQueryDto
   ): Promise<PaginationOutput<Interviews>> {
+    query.filter = JSON.stringify({
+      scheduledAt: { $gte: new Date().toISOString() },
+    });
     const result = await PaginateAndFilter<Interviews>(
       this.InterviewModel,
       query,
@@ -57,6 +60,22 @@ export class InterviewRepository {
 
   async findById(id: string): Promise<Interviews | null> {
     return this.InterviewModel.findById(id)
+      .populate({ path: "candidate" })
+      .lean()
+      .exec();
+  }
+
+  async findByDate(): Promise<Interviews[] | null> {
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0); 
+
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 59, 59, 999);
+
+
+    return this.InterviewModel.find({
+      scheduledAt: { $gte: startOfDay, $lte: endOfDay },
+    })
       .populate({ path: "candidate" })
       .lean()
       .exec();
