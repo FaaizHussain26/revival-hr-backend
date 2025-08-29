@@ -145,6 +145,18 @@ export class InterviewService {
     }
   }
 
+
+  async todayInterview(){
+    try {
+      const interviews = await this.interviewRepository.findByDate();
+      return successResponse("Interviews fetched successfully", interviews);
+    } catch (error) {
+      throw new InternalServerErrorException(
+        "An unexpected error occurred while fetching the Interviews."
+      );
+    }
+  }
+
   async update(id: string, payload: UpdateInterviewDto) {
     try {
       const existingInterview = await this.interviewRepository.findById(id);
@@ -201,7 +213,7 @@ export class InterviewService {
             "New schedule time must be different from the current one."
           );
         }
-
+      
         const template = rescheduledInterviewEmailTemplate(
           candidate.applicant_name,
           (payload.location as string) || existingInterview.location,
