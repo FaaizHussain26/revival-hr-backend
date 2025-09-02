@@ -43,14 +43,6 @@ export class Interviews {
   @Prop()
   eventId?: string;
 
-  // @Prop({ type: [String] })
-  // attendees?: string[]; // array of email addresses
-
-  // @Prop()
-  // organizer?: string; // email of organizer
-
-  // @Prop()
-  // meetingLink?: string; // zoom/teams/google meet etc.
 }
 
 export const InterviewSchema = SchemaFactory.createForClass(Interviews);
