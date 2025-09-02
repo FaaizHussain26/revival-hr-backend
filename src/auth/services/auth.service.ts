@@ -240,14 +240,16 @@ export class AuthService {
     }
   }
 
-  async updatePassword(id: string, payload: UpdatePasswordDto) {
+  async updatePassword(user: User, payload: UpdatePasswordDto) {
     try {
-      if (!Types.ObjectId.isValid(id)) {
+      if (!Types.ObjectId.isValid(user._id as string)) {
         throw new BadRequestException("Invalid ID format");
       }
       const { currentPassword, newPassword } = payload;
-      const user = await this.userRepository.findById(id);
-      if (!user) {
+      const existingUser = await this.userRepository.findById(
+        user._id as string
+      );
+      if (!existingUser) {
         throw new NotFoundException("User not found");
       }
       const comparePassword = await bcrypt.compare(
@@ -259,7 +261,10 @@ export class AuthService {
       }
       const hashedPassword = await bcrypt.hash(newPassword, 10);
       user.password = hashedPassword;
-      const passwordUpdated = await this.userRepository.updateProfile(id, user);
+      const passwordUpdated = await this.userRepository.updateProfile(
+        user._id as string,
+        user
+      );
       if (!passwordUpdated) {
         throw new BadRequestException("Password update failed");
       }

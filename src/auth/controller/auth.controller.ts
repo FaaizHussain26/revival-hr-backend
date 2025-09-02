@@ -69,12 +69,12 @@ export class AuthController {
   }
 
   @HttpCode(HttpStatus.OK)
-  @Put("update-password/:id")
+  @Put("update-password")
   @UseGuards(JwtAuthGuard)
   async updatePassword(
-    @Param('id') id: string,
+    @AuthUser() user: User,
     @Body() payload: UpdatePasswordDto
   ) {
-    return await this.authService.updatePassword(id, payload);
+    return await this.authService.updatePassword(user, payload);
   }
 }

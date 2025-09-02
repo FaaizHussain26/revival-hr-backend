@@ -59,7 +59,7 @@ export class UserController {
     return await this.userservice.delete(id);
   }
 
-  @Post("restore/:id")
+  @Put("restore/:id")
   @Roles(Role.Admin)
   @UseGuards(JwtAuthGuard)
   async restore(@Param("id") id: string) {

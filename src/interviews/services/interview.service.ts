@@ -145,8 +145,7 @@ export class InterviewService {
     }
   }
 
-
-  async todayInterview(){
+  async todayInterview() {
     try {
       const interviews = await this.interviewRepository.findByDate();
       return successResponse("Interviews fetched successfully", interviews);
@@ -174,19 +173,16 @@ export class InterviewService {
       const candidate = await this.candidatesRepository.findById(
         existingInterview.candidate._id.toString()
       );
-      console.log(candidate);
       if (!candidate) {
         throw new NotFoundException("Candidate Id is not valid");
       }
-
-      const uId = existingInterview.eventId;
       if (
         payload.status === "scheduled" &&
         existingInterview.status === "scheduled"
       ) {
         throw new BadRequestException("Interview is already scheduled");
       }
-
+      const uId = existingInterview.eventId;
       let subject = "";
       let bodyForCandidate = "";
       let bodyForInterviewer = "";
@@ -202,7 +198,7 @@ export class InterviewService {
         const newScheduleDate = new Date(payload.scheduledAt);
         const currentScheduleDate = new Date(existingInterview.scheduledAt);
 
-        if (currentScheduleDate < now) {
+        if (newScheduleDate < now) {
           throw new BadRequestException(
             "Cannot reschedule an interview that has already passed."
           );
@@ -213,7 +209,7 @@ export class InterviewService {
             "New schedule time must be different from the current one."
           );
         }
-      
+
         const template = rescheduledInterviewEmailTemplate(
           candidate.applicant_name,
           (payload.location as string) || existingInterview.location,
