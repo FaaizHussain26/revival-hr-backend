@@ -75,7 +75,6 @@ export class ShortlistedCandidatesService {
       }
       return successResponse("Candidate retrieved successfully", candidate);
     } catch (error) {
-      console.log(error);
       if (error instanceof NotFoundException) {
         throw error;
       }

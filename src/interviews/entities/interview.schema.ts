@@ -20,7 +20,7 @@ export class Interviews {
 
   @Prop({
     required: true,
-    enum: ["phone_screen", "technical", "behavioral", "final"],
+    enum: ["hr", "clinical", "administration/leadership "],
   })
   type: string;
 
@@ -42,7 +42,6 @@ export class Interviews {
 
   @Prop()
   eventId?: string;
-
 }
 
 export const InterviewSchema = SchemaFactory.createForClass(Interviews);

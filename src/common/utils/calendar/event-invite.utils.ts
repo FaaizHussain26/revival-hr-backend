@@ -6,7 +6,6 @@ export interface CalendarInviteOptions {
   summary: string;
   description?: string;
   location?: string;
-  organizer: { name: string; email: string };
   attendees?: Array<{ name: string; email: string }>;
   method?: "REQUEST" | "PUBLISH" | "CANCEL";
   sequence?: 0 | 1;
@@ -14,20 +13,19 @@ export interface CalendarInviteOptions {
 
 export function generateICS(options: CalendarInviteOptions): string {
   const {
-    uid = `${Date.now()}@revivalhr.com`,
+    uid,
     dtstamp,
     start,
     end,
     summary,
     description = "",
     location = "",
-    organizer,
     attendees = [],
-    method ,
+    method,
     sequence,
-    } = options;
+  } = options;
 
-  const attendeeLines = attendees 
+  const attendeeLines = attendees
     .map(
       (attendee) =>
         `ATTENDEE;CN=${attendee.name};RSVP=TRUE:mailto:${attendee.email}`
@@ -47,7 +45,6 @@ DTEND:${end}
 SUMMARY:${summary}
 DESCRIPTION:${description}
 LOCATION:${location}
-ORGANIZER;CN=${organizer.name}:mailto:${organizer.email}
 ${attendeeLines}
 SEQUENCE:${sequence}
 STATUS:CONFIRMED
