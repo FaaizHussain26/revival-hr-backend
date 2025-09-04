@@ -104,4 +104,12 @@ export class InterviewRepository {
       { new: true }
     ).exec();
   }
+
+  async autoDeleteOldInterviews(): Promise<{ deletedCount?: number }> {
+    const cutoffDate = new Date();
+    cutoffDate.setUTCDate(cutoffDate.getUTCDate() - 3); // 3 days ago
+    return this.InterviewModel.deleteMany({
+      updatedAt: { $lt: cutoffDate },
+    }).exec();
+  }
 }
