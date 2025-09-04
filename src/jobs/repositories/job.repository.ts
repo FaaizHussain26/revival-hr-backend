@@ -14,6 +14,14 @@ import { Job } from "../entities/job.schema";
 export class JobRepository {
   constructor(@InjectModel(Job.name) private readonly jobModel: Model<Job>) {}
 
+  async count(): Promise<number> {
+    return this.jobModel.countDocuments({ deletedAt: null }).exec();
+  }
+
+  async countByFilter(filter: Record<string, any>) {
+    return await this.jobModel.countDocuments(filter).exec();
+  }
+
   async create(
     createJobDto: CreateJobDto & { embedding?: number[] }
   ): Promise<Job> {

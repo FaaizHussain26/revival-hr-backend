@@ -145,13 +145,15 @@ export class ShortlistedCandidatesRepository {
     return await this.candidateModel.countDocuments(filter).exec();
   }
 
+  async 
+
   /**
    * Counts documents using a filter object (MongoDB style)
    */
   async countByFilter(filter: Record<string, any>) {
     return await this.candidateModel.countDocuments(filter).exec();
   }
-
+ 
   async create(payload: CreateCandidateDto): Promise<ShortlistedCandidates> {
     const newCandidate = new this.candidateModel(payload);
     return await newCandidate.save();
