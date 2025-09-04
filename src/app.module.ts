@@ -14,6 +14,7 @@ import { SkillModule } from "./skills/skill.module";
 import { ShortlistedCandidatesModule } from "./shortlisted-candidate/shortlisted-candidates.module";
 import { ResumeAnalyzerModule } from "./resume-analyzer/resume-analyzer.module";
 import { InterviewModule } from "./interviews/interview.module";
+import { DashboardModule } from "./dashboard/dashboard.module";
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { InterviewModule } from "./interviews/interview.module";
     SkillModule,
     ResumeAnalyzerModule,
     InterviewModule,
+    DashboardModule
   ],
   providers: [
     {

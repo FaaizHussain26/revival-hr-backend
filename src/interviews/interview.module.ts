@@ -27,5 +27,6 @@ import { ConfigService } from "@nestjs/config";
     ShortlistedCandidatesRepository,
     ConfigService,
   ],
+  exports: [InterviewRepository,MongooseModule],
 })
 export class InterviewModule {}

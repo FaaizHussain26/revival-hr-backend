@@ -67,11 +67,10 @@ export class InterviewRepository {
 
   async findByDate(): Promise<Interviews[] | null> {
     const startOfDay = new Date();
-    startOfDay.setHours(0, 0, 0, 0); 
+    startOfDay.setHours(0, 0, 0, 0);
 
     const endOfDay = new Date();
     endOfDay.setHours(23, 59, 59, 999);
-
 
     return this.InterviewModel.find({
       scheduledAt: { $gte: startOfDay, $lte: endOfDay },
@@ -79,6 +78,20 @@ export class InterviewRepository {
       .populate({ path: "candidate" })
       .lean()
       .exec();
+  }
+  async countInterviewsThisWeek(): Promise<number> {
+    const startOfWeek = new Date();
+    startOfWeek.setUTCHours(0, 0, 0, 0);
+    startOfWeek.setUTCDate(startOfWeek.getUTCDate() - startOfWeek.getUTCDay()); // Sunday
+
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setUTCDate(endOfWeek.getUTCDate() + 7); // next Sunday
+
+    const count = await this.InterviewModel.countDocuments({
+      scheduledAt: { $gte: startOfWeek, $lt: endOfWeek },
+    });
+
+    return count;
   }
 
   async update(
