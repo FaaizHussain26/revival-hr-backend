@@ -21,9 +21,7 @@ export class SkillService {
       }
       const lowercaseName = payload.name.toLowerCase().trim();
       payload.name = lowercaseName;
-      console.log("Payload before duplicate check:", payload.name);
       const duplicate = await this.skillRepository.findByName(payload.name);
-      console.log("Duplicate skill check:", duplicate);
       if (duplicate) {
         throw new ConflictException("Skill already exist");
       }

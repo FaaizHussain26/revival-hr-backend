@@ -66,10 +66,6 @@ export class EmailService {
             summary: subject,
             description: payload.description,
             location: payload.location,
-            organizer: {
-              name: "HR Team",
-              email: payload.fromEmail,
-            },
             attendees: [
               { name: payload.candidateName, email: payload.candidateEmail },
               ...payload.interviewer.map((email: string) => ({

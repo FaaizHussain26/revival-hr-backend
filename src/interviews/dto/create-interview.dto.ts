@@ -12,23 +12,21 @@ import {
 } from "class-validator";
 
 enum InterviewType {
-  PHONE_SCREEN = "phone_screen",
-  TECHNICAL = "technical",
-  BEHAVIORAL = "behavioral",
-  FINAL = "final",
+  HR = "hr",
+  CLINICAL = "clinical",
+  ADMINISTRATION = "administration/leadership",
 }
 
 enum InterviewStatus {
   SCHEDULED = "scheduled",
-  COMPLETED = "completed",
   CANCELLED = "cancelled",
   RESCHEDULED = "rescheduled",
 }
 
 export class CreateInterviewDto {
   @ApiProperty({
-    description: "Name of the candidate being interviewed",
-    example: "John Doe",
+    description: "ID of the candidate being interviewed",
+    example: "111111abcdef1234567890ab",
     required: true,
   })
   @IsString()
@@ -42,15 +40,6 @@ export class CreateInterviewDto {
   })
   @IsNotEmpty()
   scheduledAt: Date;
-
-  // @ApiProperty({
-  //   description: "Subject line of the interview invitation email",
-  //   example: "Interview Invitation – Software Engineer Role at Acme Corp",
-  //   required: true,
-  // })
-  // @IsNotEmpty()
-  // @IsString()
-  // subject: string;
 
   @ApiProperty({
     description: "Duration of the interview in minutes",

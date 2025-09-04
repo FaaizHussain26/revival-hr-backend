@@ -19,6 +19,7 @@ import { v4 as uuidv4 } from "uuid";
 import { CreateInterviewDto } from "../dto/create-interview.dto";
 import { UpdateInterviewDto } from "../dto/update-interview.dto";
 import { InterviewRepository } from "../repositories/interview.repository";
+import { from } from "rxjs";
 
 @Injectable()
 export class InterviewService {
@@ -115,7 +116,6 @@ export class InterviewService {
       ) {
         throw error;
       }
-      console.error("Error creating Interview:", error);
       throw new InternalServerErrorException(
         "An unexpected error occurred while creating the Interview."
       );
@@ -189,8 +189,42 @@ export class InterviewService {
       let method = "";
       let sequence = 1;
       const now = new Date();
-
+      //setting up conditions for reschedule and cancel interview
       if (payload.status == "rescheduled") {
+        // Notify previous interviewers if interviewer list has changed
+        const preivousInterviewer = existingInterview.interviewer.filter(
+          (x) => !payload.interviewer?.includes(x)
+        );
+        if (preivousInterviewer.length) {
+          let sequenceNumber = 1;
+          const template = canceledInterviewEmailTemplate(
+            candidate.applicant_name
+          );
+          const preivousInterviewerField = {
+            scheduledAt: existingInterview.scheduledAt,
+            duration: existingInterview.duration,
+            type: existingInterview.type,
+            interviewer: preivousInterviewer,
+            location: existingInterview.location,
+            status: existingInterview.status,
+            notes: existingInterview.notes,
+            eventId: existingInterview.eventId,
+          };
+          await this.eventEmitter.emitAsync("interview.scheduled", {
+            payload: {
+              ...preivousInterviewerField,
+              candidateName: candidate.applicant_name,
+              candidateEmail: candidate.applicant_email,
+              method: "CANCEL",
+              sequence: sequenceNumber++,
+              uId,
+            },
+            recipients: [...preivousInterviewer],
+            subject: template.subject,
+            body: template.bodyForInterviewer,
+          });
+        }
+
         if (!payload.scheduledAt) {
           throw new BadRequestException("New scheduled date must be provided.");
         }
@@ -256,11 +290,12 @@ export class InterviewService {
         notes: payload.notes || existingInterview.notes,
         eventId: existingInterview.eventId,
       };
+
+      //send email to candidate and interviewer
       const email = await Promise.all([
         this.eventEmitter.emitAsync("interview.scheduled", {
           payload: {
             ...updatedField,
-            fromEmail: this.configService.get<string>("BREVO_USER"),
             candidateName: candidate.applicant_name,
             candidateEmail: candidate.applicant_email,
             method: method,
@@ -274,7 +309,6 @@ export class InterviewService {
         this.eventEmitter.emitAsync("interview.scheduled", {
           payload: {
             ...updatedField,
-            fromEmail: this.configService.get<string>("BREVO_USER"),
             candidateName: candidate.applicant_name,
             candidateEmail: candidate.applicant_email,
             method: method,
@@ -309,7 +343,6 @@ export class InterviewService {
       ) {
         throw error;
       }
-      console.error("Error creating Interview:", error);
       throw new InternalServerErrorException(
         "An unexpected error occurred while creating the Interview."
       );

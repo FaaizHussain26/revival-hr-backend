@@ -20,7 +20,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
           },
         },
         defaults: {
-          from: `"DAX AI" ${configService.get<string>('BREVO_USER')}`,
+          from: `"Revial" ${configService.get<string>('BREVO_USER')}`,
         },
       }),
       inject: [ConfigService],

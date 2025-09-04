@@ -58,7 +58,6 @@ export function canceledInterviewEmailTemplate(candidate_name: string) {
 
   const bodyForInterviewer = `
   <b>Dear Interviewer</b><br/>
-  <p>The interview with <strong>${candidate_name}</strong>,`;
-
+  <p>The interview with <strong>${candidate_name}</strong>, has been <strong>canceled</strong>`;
   return { subject, bodyForCandidate, bodyForInterviewer };
 }
