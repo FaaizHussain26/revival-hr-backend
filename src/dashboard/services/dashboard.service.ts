@@ -1,11 +1,8 @@
 import { Injectable, InternalServerErrorException } from "@nestjs/common";
-import { InjectModel } from "@nestjs/mongoose";
-import { Model } from "mongoose";
+import { InterviewRepository } from "src/interviews/repositories/interview.repository";
+import { JobRepository } from "src/jobs/repositories/job.repository";
 import { ShortlistedCandidatesRepository } from "src/shortlisted-candidate/repositories/shortlisted-candidates.repository";
 import { DashboardStats } from "../dto/dashboard.dto";
-import { JobRepository } from "src/jobs/repositories/job.repository";
-import { InterviewRepository } from "src/interviews/repositories/interview.repository";
-import { isAbsolute } from "path";
 
 @Injectable()
 export class DashboardService {

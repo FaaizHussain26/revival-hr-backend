@@ -26,15 +26,19 @@ export class InterviewController {
 
   @Post("/")
   @HttpCode(HttpStatus.CREATED)
+  @UseGuards(JwtAuthGuard)
   create(@Body() payload: CreateInterviewDto) {
     return this.InterviewService.create(payload);
   }
 
   @Get("/")
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
   findAllUpComingInterview(@Query() query: PaginationQueryDto) {
     return this.InterviewService.findAllPaginatedAndFiltered(query);
   }
   @Get("all/")
+  @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   findAll() {
     return this.InterviewService.findAll();
@@ -42,12 +46,14 @@ export class InterviewController {
 
   @Get("today")
   @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
   todayInterview() {
     return this.InterviewService.todayInterview();
   }
 
   @Put("/:id")
   @HttpCode(HttpStatus.CREATED)
+  @UseGuards(JwtAuthGuard)
   update(@Param("id") id: string, @Body() payload: UpdateInterviewDto) {
     return this.InterviewService.update(id, payload);
   }
