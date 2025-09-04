@@ -53,6 +53,7 @@ import { DashboardModule } from "./dashboard/dashboard.module";
     {
       provide: APP_GUARD,
       useClass: RolesGuard,
+    
     },
     UserSeeder,
     UserRepository,
