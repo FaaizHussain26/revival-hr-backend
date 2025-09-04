@@ -137,6 +137,7 @@ export class InterviewService {
     try {
       const interviews =
         await this.interviewRepository.findAllPaginatedAndFiltered(query);
+        await this.interviewRepository.autoDeleteOldInterviews();
       return successResponse("Interviews fetched successfully", interviews);
     } catch (error) {
       throw new InternalServerErrorException(
