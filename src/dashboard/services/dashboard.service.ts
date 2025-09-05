@@ -17,7 +17,7 @@ export class DashboardService {
       const totalJob = await this.jobRepository.countByFilter({
         isActive: true,
       });
-      const totalInactiveCandidates =
+      const totalactiveCandidates =
         await this.candidatesRepository.countByFilter({ isDeleted: null });
       const countInterviewsThisWeek =
         await this.interviewRepository.countInterviewsThisWeek();
@@ -26,14 +26,14 @@ export class DashboardService {
         const totalHiredCandidates =
           await this.candidatesRepository.countByFilter({ status: "hired" });
         const totalCandidates = await this.candidatesRepository.count();
-        const hired = 0 ? 0 : (totalHiredCandidates / totalCandidates) * 100;
+        const hired = `${(0 ? 0 : (totalHiredCandidates / totalCandidates) * 100).toFixed(2)}%`;
 
-        return hired.toFixed(2);
+        return hired;
       };
 
       return {
         totalJob,
-        totalInactiveCandidates,
+        totalactiveCandidates,
         countInterviewsThisWeek,
         hiringRate: await hiringRate(),
       };
