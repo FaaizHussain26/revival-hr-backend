@@ -190,9 +190,7 @@ export class InterviewService {
       let method = "";
       let sequence = 1;
       const now = new Date();
-      //setting up conditions for reschedule and cancel interview
       if (payload.status == "rescheduled") {
-        // Notify previous interviewers if interviewer list has changed
         const preivousInterviewer = existingInterview.interviewer.filter(
           (x) => !payload.interviewer?.includes(x)
         );
@@ -201,7 +199,7 @@ export class InterviewService {
           const template = canceledInterviewEmailTemplate(
             candidate.applicant_name
           );
-          const preivousInterviewerField = {
+          const previousInterviewerField = {
             scheduledAt: existingInterview.scheduledAt,
             duration: existingInterview.duration,
             type: existingInterview.type,
@@ -213,7 +211,7 @@ export class InterviewService {
           };
           await this.eventEmitter.emitAsync("interview.scheduled", {
             payload: {
-              ...preivousInterviewerField,
+              ...previousInterviewerField,
               candidateName: candidate.applicant_name,
               candidateEmail: candidate.applicant_email,
               method: "CANCEL",

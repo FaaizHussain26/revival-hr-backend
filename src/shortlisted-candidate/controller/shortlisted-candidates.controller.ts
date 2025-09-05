@@ -28,7 +28,7 @@ export class ShortlistedCandidatesController {
 
   @HttpCode(HttpStatus.OK)
   @Get("/")
-   @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   findAllCandidates(@Query() query: PaginationQueryDto) {
     return this.candidatesService.findAll(query);
   }
@@ -38,6 +38,13 @@ export class ShortlistedCandidatesController {
   @UseGuards(JwtAuthGuard)
   findCandidatesWithJobs() {
     return this.candidatesService.findCandidatesWithJobs();
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Get("candidate-with-jobs/")
+  @UseGuards(JwtAuthGuard)
+  countCandidates() {
+    return this.candidatesService.countCandidates();
   }
 
   @HttpCode(HttpStatus.OK)

@@ -90,26 +90,18 @@ export class ShortlistedCandidatesService {
       await this.candidatesRepository.aggregateCandidatesWithJobs()
     );
   }
-
-  // async getDashboardStats() {
-  //   return {
-  //     total_candidates: await this.candidatesRepository.count(),
-  //     total_rejected_candidates: await this.candidatesRepository.count(
-  //       "job_matched",
-  //       "No",
-  //       true
-  //     ),
-  //     total_accepted_candidates: await this.candidatesRepository.count(
-  //       "job_matched",
-  //       "Yes",
-  //       true
-  //     ),
-  //     total_duplicate_candidates: await this.candidatesRepository.count(
-  //       "isDuplicated",
-  //       "true"
-  //     ),
-  //   };
-  // }
+  async countCandidates() {
+    const activeCandidates = await this.candidatesRepository.countByFilter({
+      deletedAt: null,
+    });
+    const inactiveCandidates = await this.candidatesRepository.countByFilter({
+      deletedAt: { $ne: null },
+    });
+    return successResponse("Candidates count retrieved successfully", {
+      activeCandidates: activeCandidates,
+      inactiveCandidates: inactiveCandidates,
+    });
+  }
 
   async delete(id: string) {
     try {

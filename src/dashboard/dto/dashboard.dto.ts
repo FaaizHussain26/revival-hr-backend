@@ -1,6 +1,6 @@
 export interface DashboardStats {
-  hiringRate: any; // Replace 'any' with your candidate type if available
+  hiringRate: string; // Replace 'any' with your candidate type if available
   totalJob: number;
-  totalInactiveCandidates: number;
+  totalactiveCandidates: number;
   countInterviewsThisWeek: number;
 }
