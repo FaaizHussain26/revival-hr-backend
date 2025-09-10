@@ -41,7 +41,7 @@ export class ShortlistedCandidatesController {
   }
 
   @HttpCode(HttpStatus.OK)
-  @Get("candidate-with-jobs/")
+  @Get("stats/")
   @UseGuards(JwtAuthGuard)
   countCandidates() {
     return this.candidatesService.countCandidates();

@@ -49,6 +49,10 @@ export class UserRepository {
   async findByEmail(userEmail: string): Promise<User | null> {
     return await this.userModel.findOne({ email: userEmail }).exec();
   }
+
+  async countByFilter(filter?: Record<string, any>) {
+    return await this.userModel.countDocuments(filter).exec();
+  }
   async updateProfile(id: string, user: Partial<User>): Promise<User | null> {
     return await this.userModel.findOneAndUpdate(
       { _id: id },

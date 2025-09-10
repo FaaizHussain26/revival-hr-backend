@@ -3,6 +3,8 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   Post,
   Put,
@@ -26,6 +28,13 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   async findAll(@Query() query: UserPaginationDto) {
     return await this.userservice.findAll(query);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Get("stats/")
+  @UseGuards(JwtAuthGuard)
+  async getUserStats() {
+    return await this.userservice.getUserStats();
   }
 
   @Get(":id")
