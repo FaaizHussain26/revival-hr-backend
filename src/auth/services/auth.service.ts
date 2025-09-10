@@ -203,6 +203,13 @@ export class AuthService {
       if (!existingUser) {
         throw new NotFoundException("User not found");
       }
+      if (existingUser.role === "admin") {
+        if (!payload.isActive) {
+          throw new BadRequestException(
+            "You are the admin, so you must remain active."
+          );
+        }
+      }
       const updatedUser = await this.userRepository.updateProfile(
         user._id as string,
         payload
@@ -210,6 +217,7 @@ export class AuthService {
       if (!updatedUser) {
         throw new BadRequestException("Profile update failed");
       }
+
       const token = await this.jwtService.sign(
         {
           sub: updatedUser._id,

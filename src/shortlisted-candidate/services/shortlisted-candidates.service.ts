@@ -91,13 +91,15 @@ export class ShortlistedCandidatesService {
     );
   }
   async countCandidates() {
-    const activeCandidates = await this.candidatesRepository.countByFilter({
-      deletedAt: null,
-    });
-    const inactiveCandidates = await this.candidatesRepository.countByFilter({
-      deletedAt: { $ne: null },
-    });
+    const [totalCandidates, activeCandidates, inactiveCandidates] =
+      await Promise.all([
+        this.candidatesRepository.count(),
+        this.candidatesRepository.countByFilter({ deletedAt: null }),
+        this.candidatesRepository.countByFilter({ deletedAt: { $ne: null } }),
+      ]);
+
     return successResponse("Candidates count retrieved successfully", {
+      totalCandidates: totalCandidates,
       activeCandidates: activeCandidates,
       inactiveCandidates: inactiveCandidates,
     });

@@ -26,7 +26,7 @@ export class DashboardService {
         const totalHiredCandidates =
           await this.candidatesRepository.countByFilter({ status: "hired" });
         const totalCandidates = await this.candidatesRepository.count();
-        const hired = `${(0 ? 0 : (totalHiredCandidates / totalCandidates) * 100).toFixed(2)}%`;
+        const hired = `${(0 ? 0 : (totalHiredCandidates / totalCandidates) * 100).toFixed(0)}%`;
 
         return hired;
       };

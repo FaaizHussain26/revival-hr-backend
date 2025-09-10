@@ -50,6 +50,24 @@ export class UserService {
     }
   }
 
+  async getUserStats() {
+    try {
+      const [totalUser, totalActiveUser, totalAdmin] = await Promise.all([
+        this.userrepo.countByFilter(),
+        this.userrepo.countByFilter({ isActive: true }),
+        this.userrepo.countByFilter({ role: "admin" }),
+      ]);
+
+      return successResponse("User stats retrieved successfully", {
+        totalUser,
+        totalActiveUser,
+        totalAdmin,
+      });
+    } catch (error) {
+      throw new InternalServerErrorException("Failed to retrieve user stats");
+    }
+  }
+
   async create(payload: CreateUserDto) {
     try {
       const existingUser = await this.userrepo.findByEmail(payload.email);
