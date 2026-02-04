@@ -9,31 +9,24 @@ import {
 import { Job } from "src/jobs/entities/job.schema";
 import { CreateCandidateDto } from "../dto/create-shortlisted-candidates.dto";
 import { UpdateCandidateStatusDto } from "../dto/update-candidate-status.dto";
-import { ShortlistedCandidates } from "../entities/shortlisted-candidates.schema";
+import { TalentMatch } from "../entities/talent-match.schema";
 
 @Injectable()
-export class ShortlistedCandidatesRepository {
+export class TalentMatchRepository {
   constructor(
-    @InjectModel(ShortlistedCandidates.name)
-    private readonly candidateModel: Model<ShortlistedCandidates>
+    @InjectModel(TalentMatch.name)
+    private readonly candidateModel: Model<TalentMatch>
   ) {}
 
   async aggregateCandidatesWithJobs() {
     return this.candidateModel.aggregate([
       {
         $group: {
-          _id: "$job",
+          _id: "$match_details.job_id",
           count: { $sum: 1 },
           data: {
-            $push: {
-              _id: "$_id",
-              applicant_name: "$applicant_name",
-              applicant_phone: "$applicant_phone",
-              applicant_email: "$applicant_email",
-              job_matched: "$job_matched",
-              matched_skills: "$matched_skills",
-              match_score: "$match_score",
-            },
+            // Push the full match_details blob for each candidate
+            $push: "$match_details",
           },
         },
       },
@@ -67,7 +60,7 @@ export class ShortlistedCandidatesRepository {
     const duplicates = await this.candidateModel.aggregate([
       {
         $group: {
-          _id: "$applicant_email",
+          _id: "$match_details.outlook_details.applicant_email",
           count: { $sum: 1 },
           ids: { $push: "$_id" },
         },
@@ -88,7 +81,7 @@ export class ShortlistedCandidatesRepository {
 
       await this.candidateModel.updateOne(
         { _id: keepId },
-        { $set: { isDuplicated: false, status: "applied" } }
+        { $set: { isDuplicated: false } }
       );
     }
 
@@ -113,11 +106,11 @@ export class ShortlistedCandidatesRepository {
 
   async findAllPaginatedAndFiltered(
     query: PaginationQueryDto
-  ): Promise<PaginationOutput<ShortlistedCandidates>> {
-    const result = await PaginateAndFilter<ShortlistedCandidates>(
+  ): Promise<PaginationOutput<TalentMatch>> {
+    const result = await PaginateAndFilter<TalentMatch>(
       this.candidateModel,
       query,
-      ["applicant_name"]
+      ["match_details.applicant_name"]
     );
 
     const populatedData = await this.candidateModel.populate(result.data, {
@@ -151,9 +144,12 @@ export class ShortlistedCandidatesRepository {
   async countByFilter(filter: Record<string, any>) {
     return await this.candidateModel.countDocuments(filter).exec();
   }
- 
-  async create(payload: CreateCandidateDto): Promise<ShortlistedCandidates> {
-    const newCandidate = new this.candidateModel(payload);
+
+  async create(payload: CreateCandidateDto): Promise<TalentMatch> {
+    // Store all DTO fields inside match_details, to match MongoDB shape
+    const newCandidate = new this.candidateModel({
+      match_details: payload as any,
+    });
     return await newCandidate.save();
   }
 
@@ -164,10 +160,13 @@ export class ShortlistedCandidatesRepository {
       .exec();
   }
 
-  async findByEmail(email: string): Promise<ShortlistedCandidates | null> {
-    return await this.candidateModel.findOne({ applicant_email: email }).exec();
+  async findByEmail(email: string): Promise<TalentMatch | null> {
+    return await this.candidateModel
+      .findOne({ "match_details.outlook_details.applicant_email": email })
+      .exec();
   }
-  async findById(id: string): Promise<ShortlistedCandidates | null> {
+
+  async findById(id: string): Promise<TalentMatch | null> {
     return await this.candidateModel
       .findById(id)
       .populate({
@@ -177,19 +176,21 @@ export class ShortlistedCandidatesRepository {
       .lean()
       .exec();
   }
+
   async updateCandidateStatus(
     id: string,
     data: UpdateCandidateStatusDto
-  ): Promise<ShortlistedCandidates | null> {
+  ): Promise<TalentMatch | null> {
     return await this.candidateModel
       .findOneAndUpdate(
         { _id: id },
-        { $set: { status: data.status } },
+        { $set: { status: (data as any).status } },
         { new: true }
       )
       .exec();
   }
-  async delete(id: string): Promise<ShortlistedCandidates | null> {
+
+  async delete(id: string): Promise<TalentMatch | null> {
     return await this.candidateModel
       .findOneAndUpdate(
         { _id: id },
@@ -199,7 +200,7 @@ export class ShortlistedCandidatesRepository {
       .exec();
   }
 
-  async restore(id: string): Promise<ShortlistedCandidates | null> {
+  async restore(id: string): Promise<TalentMatch | null> {
     return await this.candidateModel
       .findOneAndUpdate(
         { _id: id, deletedAt: { $ne: null } },
@@ -209,7 +210,7 @@ export class ShortlistedCandidatesRepository {
       .exec();
   }
 
-  async permanentDelete(id: string): Promise<ShortlistedCandidates | null> {
+  async permanentDelete(id: string): Promise<TalentMatch | null> {
     return await this.candidateModel.findByIdAndDelete(id);
   }
 }

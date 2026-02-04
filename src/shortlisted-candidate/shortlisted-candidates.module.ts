@@ -5,7 +5,12 @@ import {
   ShortlistedCandidates,
   ShortlistedSchema,
 } from "./entities/shortlisted-candidates.schema";
+import {
+  TalentMatch,
+  TalentMatchSchema,
+} from "./entities/talent-match.schema";
 import { ShortlistedCandidatesRepository } from "./repositories/shortlisted-candidates.repository";
+import { TalentMatchRepository } from "./repositories/talent-match.repository";
 import { ShortlistedCandidatesService } from "./services/shortlisted-candidates.service";
 
 import { JwtService } from "@nestjs/jwt";
@@ -18,6 +23,7 @@ import { HiringPipelineService } from "./services/hiring-pipeline.service";
   imports: [
     MongooseModule.forFeature([
       { name: ShortlistedCandidates.name, schema: ShortlistedSchema },
+      { name: TalentMatch.name, schema: TalentMatchSchema },
     ]),
     JobsModule,
   ],
@@ -25,10 +31,11 @@ import { HiringPipelineService } from "./services/hiring-pipeline.service";
   providers: [
     ShortlistedCandidatesService,
     ShortlistedCandidatesRepository,
+    TalentMatchRepository,
     JwtService,
     JobRepository,
     HiringPipelineService,
   ],
-  exports: [ShortlistedCandidatesRepository, MongooseModule],
+  exports: [TalentMatchRepository, MongooseModule],
 })
 export class ShortlistedCandidatesModule {}

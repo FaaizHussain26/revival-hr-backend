@@ -61,6 +61,7 @@ export class JobService {
 
   async findAll(query: JobPaginationDto) {
     const findAll = await this.jobRepository.findAllPaginatedAndFiltered(query);
+    console.log("findAll", findAll);
     return paginationResponse(
       "Job retrieved successfully",
       findAll.data,

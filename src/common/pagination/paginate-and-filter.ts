@@ -54,12 +54,14 @@ export async function PaginateAndFilter<T>(
     }));
   }
 
-  const dbQuery = model.find(filters).sort(sort).skip(skip).limit(limit);
+  const dbQuery = model.find(filters).limit(limit);
 
   const [items, total] = await Promise.all([
     dbQuery.exec(),
     model.countDocuments(filters),
   ]);
+
+  console.log("items", items);
 
   return {
     data: items,

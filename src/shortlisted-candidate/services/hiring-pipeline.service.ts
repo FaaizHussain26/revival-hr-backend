@@ -1,5 +1,5 @@
 import { successResponse } from "src/common/response/response";
-import { ShortlistedCandidatesRepository } from "../repositories/shortlisted-candidates.repository";
+import { TalentMatchRepository } from "../repositories/talent-match.repository";
 import {
   BadRequestException,
   Injectable,
@@ -10,7 +10,7 @@ import { UpdateCandidateStatusDto } from "../dto/update-candidate-status.dto";
 @Injectable()
 export class HiringPipelineService {
   constructor(
-    private readonly candidatesRepository: ShortlistedCandidatesRepository
+    private readonly candidatesRepository: TalentMatchRepository
   ) {}
 
   async findCandidatesWithStatus() {

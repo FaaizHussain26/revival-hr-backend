@@ -14,7 +14,7 @@ import {
   rescheduledInterviewEmailTemplate,
   scheduledInterviewEmailTemplate,
 } from "src/common/utils/templates/email.template";
-import { ShortlistedCandidatesRepository } from "src/shortlisted-candidate/repositories/shortlisted-candidates.repository";
+import { TalentMatchRepository } from "src/shortlisted-candidate/repositories/talent-match.repository";
 import { v4 as uuidv4 } from "uuid";
 import { CreateInterviewDto } from "../dto/create-interview.dto";
 import { UpdateInterviewDto } from "../dto/update-interview.dto";
@@ -25,7 +25,7 @@ import { from } from "rxjs";
 export class InterviewService {
   constructor(
     private readonly interviewRepository: InterviewRepository,
-    private readonly candidatesRepository: ShortlistedCandidatesRepository,
+    private readonly candidatesRepository: TalentMatchRepository,
     private eventEmitter: EventEmitter2,
     private readonly configService: ConfigService
   ) {}

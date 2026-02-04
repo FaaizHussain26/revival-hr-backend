@@ -39,8 +39,9 @@ export class JobRepository {
       filter.isActive = query.isActive;
       query.filter = JSON.stringify(filter);
     }
+
     const result = await PaginateAndFilter<Job>(this.jobModel, query, [
-      "title",
+      "title", 
     ]);
     return result;
   }

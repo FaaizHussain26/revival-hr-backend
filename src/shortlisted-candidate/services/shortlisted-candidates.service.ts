@@ -12,12 +12,12 @@ import {
 import { JobRepository } from "src/jobs/repositories/job.repository";
 import { CreateCandidateDto } from "../dto/create-shortlisted-candidates.dto";
 import { UpdateCandidateStatusDto } from "../dto/update-candidate-status.dto";
-import { ShortlistedCandidatesRepository } from "../repositories/shortlisted-candidates.repository";
+import { TalentMatchRepository } from "../repositories/talent-match.repository";
 
 @Injectable()
 export class ShortlistedCandidatesService {
   constructor(
-    private readonly candidatesRepository: ShortlistedCandidatesRepository,
+    private readonly candidatesRepository: TalentMatchRepository,
     private readonly jobRepository: JobRepository
   ) {}
 

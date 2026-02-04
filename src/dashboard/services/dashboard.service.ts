@@ -1,13 +1,13 @@
 import { Injectable, InternalServerErrorException } from "@nestjs/common";
 import { InterviewRepository } from "src/interviews/repositories/interview.repository";
 import { JobRepository } from "src/jobs/repositories/job.repository";
-import { ShortlistedCandidatesRepository } from "src/shortlisted-candidate/repositories/shortlisted-candidates.repository";
+import { TalentMatchRepository } from "src/shortlisted-candidate/repositories/talent-match.repository";
 import { DashboardStats } from "../dto/dashboard.dto";
 
 @Injectable()
 export class DashboardService {
   constructor(
-    private readonly candidatesRepository: ShortlistedCandidatesRepository,
+    private readonly candidatesRepository: TalentMatchRepository,
     private readonly jobRepository: JobRepository,
     private readonly interviewRepository: InterviewRepository
   ) {}

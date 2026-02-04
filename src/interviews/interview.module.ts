@@ -6,7 +6,7 @@ import { InterviewService } from "./services/interview.service";
 import { InterviewRepository } from "./repositories/interview.repository";
 import { JwtService } from "@nestjs/jwt";
 import { EventEmitter2, EventEmitterModule } from "@nestjs/event-emitter";
-import { ShortlistedCandidatesRepository } from "src/shortlisted-candidate/repositories/shortlisted-candidates.repository";
+import { TalentMatchRepository } from "src/shortlisted-candidate/repositories/talent-match.repository";
 import { ShortlistedCandidatesModule } from "src/shortlisted-candidate/shortlisted-candidates.module";
 import { ConfigService } from "@nestjs/config";
 
@@ -24,7 +24,7 @@ import { ConfigService } from "@nestjs/config";
     InterviewService,
     InterviewRepository,
     JwtService,
-    ShortlistedCandidatesRepository,
+    TalentMatchRepository,
     ConfigService,
   ],
   exports: [InterviewRepository,MongooseModule],
