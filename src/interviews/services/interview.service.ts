@@ -65,7 +65,7 @@ export class InterviewService {
       const uId = uuidv4();
       const { subject, bodyForCandidate, bodyForInterviewer } =
         scheduledInterviewEmailTemplate(
-          candidate.applicant_name,
+          candidate.match_details.applicant_name,
           payload.location,
           payload.scheduledAt
         );
@@ -74,13 +74,13 @@ export class InterviewService {
           payload: {
             ...payload,
             fromEmail: this.configService.get<string>("BREVO_USER"),
-            candidateName: candidate.applicant_name,
-            candidateEmail: candidate.applicant_email,
+            candidateName: candidate.match_details.applicant_name,
+            candidateEmail: candidate.match_details.applicant_email,
             method: "REQUEST",
             uId,
             sequence: 0,
           },
-          recipients: [candidate.applicant_email],
+          recipients: [candidate.match_details.applicant_email],
           subject,
           body: bodyForCandidate,
         }),
@@ -88,8 +88,8 @@ export class InterviewService {
           payload: {
             ...payload,
             fromEmail: this.configService.get<string>("BREVO_USER"),
-            candidateName: candidate.applicant_name,
-            candidateEmail: candidate.applicant_email,
+            candidateName: candidate.match_details.applicant_name,
+            candidateEmail: candidate.match_details.applicant_email,
             method: "REQUEST",
             uId,
             sequence: 0,
@@ -197,7 +197,7 @@ export class InterviewService {
         if (preivousInterviewer.length) {
           let sequenceNumber = 1;
           const template = canceledInterviewEmailTemplate(
-            candidate.applicant_name
+            candidate.match_details.applicant_name
           );
           const previousInterviewerField = {
             scheduledAt: existingInterview.scheduledAt,
@@ -212,8 +212,8 @@ export class InterviewService {
           await this.eventEmitter.emitAsync("interview.scheduled", {
             payload: {
               ...previousInterviewerField,
-              candidateName: candidate.applicant_name,
-              candidateEmail: candidate.applicant_email,
+              candidateName: candidate.match_details.applicant_name,
+              candidateEmail: candidate.match_details.applicant_email,
               method: "CANCEL",
               sequence: sequenceNumber++,
               uId,
@@ -244,7 +244,7 @@ export class InterviewService {
         }
 
         const template = rescheduledInterviewEmailTemplate(
-          candidate.applicant_name,
+          candidate.match_details.applicant_name,
           (payload.location as string) || existingInterview.location,
           payload.scheduledAt as Date
         );
@@ -267,7 +267,7 @@ export class InterviewService {
           );
         }
         const template = canceledInterviewEmailTemplate(
-          candidate.applicant_name
+          candidate.match_details.applicant_name
         );
         subject = template.subject;
         bodyForCandidate = template.bodyForCandidate;
@@ -295,21 +295,21 @@ export class InterviewService {
         this.eventEmitter.emitAsync("interview.scheduled", {
           payload: {
             ...updatedField,
-            candidateName: candidate.applicant_name,
-            candidateEmail: candidate.applicant_email,
+            candidateName: candidate.match_details.applicant_name,
+            candidateEmail: candidate.match_details.applicant_email,
             method: method,
             sequence: sequence++,
             uId,
           },
-          recipients: [candidate.applicant_email],
+          recipients: [candidate.match_details.applicant_email],
           subject,
           body: bodyForCandidate,
         }),
         this.eventEmitter.emitAsync("interview.scheduled", {
           payload: {
             ...updatedField,
-            candidateName: candidate.applicant_name,
-            candidateEmail: candidate.applicant_email,
+            candidateName: candidate.match_details.applicant_name,
+            candidateEmail: candidate.match_details.applicant_email,
             method: method,
             sequence: sequence++,
             uId,
